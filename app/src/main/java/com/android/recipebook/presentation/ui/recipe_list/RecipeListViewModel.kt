@@ -4,6 +4,7 @@ package com.android.recipebook.presentation.ui.recipe_list
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,8 @@ class RecipeListViewModel
 
     val recipes: MutableState<List<Recipe>> = mutableStateOf(listOf())
 
+    val query = mutableStateOf("Chicken")
+
     init {
         newSearch()
     }
@@ -36,6 +39,10 @@ class RecipeListViewModel
             )
             recipes.value = result
         }
+    }
+
+    fun onQueryChanged(query: String) {
+        this.query.value = query
     }
 
 }
