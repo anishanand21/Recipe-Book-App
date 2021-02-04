@@ -49,6 +49,8 @@ class RecipeListFragment : Fragment() {
 
                 val query = viewModel.query.value
 
+                val selectedCategory = viewModel.selectedCategory.value
+
                 Column {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -79,23 +81,28 @@ class RecipeListFragment : Fragment() {
                                     },
                                     onImeActionPerformed = { action, softKeyboardController ->
                                         if (action == ImeAction.Search) {
-                                            viewModel.newSearch(query)
+                                            viewModel.newSearch()
                                             softKeyboardController?.hideSoftwareKeyboard()
                                         }
                                     },
                                     textStyle = TextStyle(color = MaterialTheme.colors.onSurface),
                                     backgroundColor = MaterialTheme.colors.surface,
                                 )
-                             }
+                            }
 
-                            ScrollableRow(modifier = Modifier.fillMaxWidth()) {
+                            ScrollableRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 8.dp, bottom = 8.dp)
+                            ) {
                                 for (category in getAllFoodCategories()) {
                                     FoodCategoryChip(
                                         category = category.value,
-                                        onExecuteSearch = {
-                                            viewModel.onQueryChanged(it)
-                                            viewModel.newSearch(it)
-                                        }
+                                        isSelected = selectedCategory == category,
+                                        onSelectedCategoryChanged = {
+                                            viewModel.onSelectedCategoryChanged(it)
+                                        },
+                                        onExecuteSearch = viewModel::newSearch
                                     )
                                 }
                             }
