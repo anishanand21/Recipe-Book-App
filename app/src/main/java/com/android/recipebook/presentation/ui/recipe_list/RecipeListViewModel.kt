@@ -28,6 +28,8 @@ class RecipeListViewModel
 
     val selectedCategory: MutableState<FoodCategory?> = mutableStateOf(null)
 
+    var categoryScrollPosition: Float = 0f
+
     init {
         newSearch()
     }
@@ -51,6 +53,10 @@ class RecipeListViewModel
         val newCategory = getFoodCategory(category)
         selectedCategory.value = newCategory
         onQueryChanged(category)
+    }
+
+    fun onChangedCategoryScrollPosition(position: Float) {
+        categoryScrollPosition = position
     }
 
 }
