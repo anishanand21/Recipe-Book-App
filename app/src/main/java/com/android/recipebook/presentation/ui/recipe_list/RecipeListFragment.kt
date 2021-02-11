@@ -27,13 +27,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import com.android.recipebook.R
-import com.android.recipebook.presentation.components.CircularIndeterminateProgressBar
-import com.android.recipebook.presentation.components.FoodCategoryChip
-import com.android.recipebook.presentation.components.RecipeCard
-import com.android.recipebook.presentation.components.SearchAppBar
+import com.android.recipebook.presentation.components.*
+import com.android.recipebook.presentation.components.HeartAnimationDefinition.HeartButtonState.*
 import com.android.recipebook.util.TAG
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class RecipeListFragment : Fragment() {
 
@@ -68,18 +68,39 @@ class RecipeListFragment : Fragment() {
                         onChangedCategoryScrollPosition = viewModel::onChangedCategoryScrollPosition
                     )
 
-                    Box(
-                        modifier = Modifier.fillMaxSize()
+                    val state = remember { mutableStateOf(IDLE) }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .height(200.dp),
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        LazyColumn {
-                            itemsIndexed(
-                                items = recipes
-                            ) { index, recipe ->
-                                RecipeCard(recipe = recipe, onClick = {})
+                        AnimatedHeartButton(
+                            modifier = Modifier,
+                            buttonState = state,
+                            onToggle = {
+                                state.value = if (state.value == IDLE) ACTIVE
+                                else IDLE
                             }
-                        }
-                        CircularIndeterminateProgressBar(isDisplayed = loading)
+                        )
                     }
+
+//                    PulsingDemo()
+
+//                    Box(
+//                        modifier = Modifier.fillMaxSize()
+//                    ) {
+//                        LazyColumn {
+//                            itemsIndexed(
+//                                items = recipes
+//                            ) { index, recipe ->
+//                                RecipeCard(recipe = recipe, onClick = {})
+//                            }
+//                        }
+//                        CircularIndeterminateProgressBar(isDisplayed = loading)
+//                    }
                 }
             }
         }

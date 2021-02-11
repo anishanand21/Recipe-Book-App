@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
+import androidx.ui.tooling.preview.Preview
 import com.android.recipebook.R
 import com.android.recipebook.domain.model.Recipe
 import com.android.recipebook.util.DEFAULT_RECIPE_IMAGE

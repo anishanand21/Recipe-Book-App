@@ -1,9 +1,6 @@
 package com.android.recipebook.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -15,14 +12,17 @@ fun CircularIndeterminateProgressBar(
     isDisplayed: Boolean,
 ) {
     if (isDisplayed) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(50.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
+        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+            val progressBar = createRef()
+            val topGuideline = createGuidelineFromTop(0.3f)
+
             CircularProgressIndicator(
-                color = MaterialTheme.colors.primary
+                color = MaterialTheme.colors.primary,
+                modifier = Modifier.constrainAs(progressBar) {
+                    top.linkTo(topGuideline)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
             )
         }
     }

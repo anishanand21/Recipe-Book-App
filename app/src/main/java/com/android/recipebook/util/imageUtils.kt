@@ -11,9 +11,11 @@ import com.android.recipebook.R
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 const val DEFAULT_RECIPE_IMAGE = R.drawable.empty_plate
 
+@ExperimentalCoroutinesApi
 @Composable
 fun loadPicture(
     url: String,
@@ -46,5 +48,28 @@ fun loadPicture(
 
         })
 
+    return bitmapState
+}
+
+@ExperimentalCoroutinesApi
+@Composable
+fun loadPicture(
+    @DrawableRes drawable: Int
+): MutableState<Bitmap?> {
+
+    val bitmapState: MutableState<Bitmap?> = mutableStateOf(null)
+
+    Glide.with(AmbientContext.current)
+        .asBitmap()
+        .load(drawable)
+        .into(object : CustomTarget<Bitmap>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                bitmapState.value = resource
+            }
+
+            override fun onLoadCleared(placeholder: Drawable?) {}
+
+        })
+    
     return bitmapState
 }
