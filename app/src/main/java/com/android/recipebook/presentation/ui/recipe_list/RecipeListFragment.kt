@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableRow
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -13,9 +14,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Brush.Companion.linearGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.TextStyle
@@ -68,41 +73,55 @@ class RecipeListFragment : Fragment() {
                         onChangedCategoryScrollPosition = viewModel::onChangedCategoryScrollPosition
                     )
 
-                    val state = remember { mutableStateOf(IDLE) }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .height(200.dp),
-                        horizontalArrangement = Arrangement.Center
+                    Box(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        AnimatedHeartButton(
-                            modifier = Modifier,
-                            buttonState = state,
-                            onToggle = {
-                                state.value = if (state.value == IDLE) ACTIVE
-                                else IDLE
+                        if (loading) {
+                            LoadingRecipeListShimmer(imageHeight = 250.dp)
+                        } else {
+                            LazyColumn {
+                                itemsIndexed(
+                                    items = recipes
+                                ) { index, recipe ->
+                                    RecipeCard(recipe = recipe, onClick = {})
+                                }
                             }
-                        )
+                        }
+                        CircularIndeterminateProgressBar(isDisplayed = loading)
                     }
-
-//                    PulsingDemo()
-
-//                    Box(
-//                        modifier = Modifier.fillMaxSize()
-//                    ) {
-//                        LazyColumn {
-//                            itemsIndexed(
-//                                items = recipes
-//                            ) { index, recipe ->
-//                                RecipeCard(recipe = recipe, onClick = {})
-//                            }
-//                        }
-//                        CircularIndeterminateProgressBar(isDisplayed = loading)
-//                    }
                 }
             }
         }
     }
 }
+
+@Composable
+fun GradientDemo() {
+    val colors = listOf(
+        Color.Blue,
+        Color.Red,
+        Color.Blue
+    )
+    val brush = linearGradient(
+        colors,
+        start = Offset(200f, 200f),
+        end = Offset(400f, 400f)
+    )
+    Surface(shape = MaterialTheme.shapes.small) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush = brush)
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
