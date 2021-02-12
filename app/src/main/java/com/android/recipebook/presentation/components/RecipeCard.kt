@@ -18,7 +18,9 @@ import com.android.recipebook.R
 import com.android.recipebook.domain.model.Recipe
 import com.android.recipebook.util.DEFAULT_RECIPE_IMAGE
 import com.android.recipebook.util.loadPicture
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 @Composable
 fun RecipeCard(
     recipe: Recipe,
