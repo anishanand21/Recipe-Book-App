@@ -24,6 +24,7 @@ fun SearchAppBar(
     query: String,
     onQueryChanged: (String) -> Unit,
     onExecuteSearch: () -> Unit,
+    categories: List<FoodCategory>,
     scrollPosition: Float,
     selectedCategory: FoodCategory?,
     onSelectedCategoryChanged: (String) -> Unit,
