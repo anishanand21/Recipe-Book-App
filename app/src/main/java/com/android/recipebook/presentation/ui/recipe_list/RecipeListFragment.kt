@@ -1,6 +1,7 @@
 package com.android.recipebook.presentation.ui.recipe_list
 
 import android.app.Application
+import android.nfc.tech.MifareUltralight.PAGE_SIZE
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -82,6 +83,8 @@ class RecipeListFragment : Fragment() {
 
                     val loading = viewModel.loading.value
 
+                    val page = viewModel.page.value
+
                     val scaffoldState = rememberScaffoldState()
 
                     Scaffold(
@@ -90,7 +93,7 @@ class RecipeListFragment : Fragment() {
                                 query = query,
                                 onQueryChanged = viewModel::onQueryChanged,
                                 onExecuteSearch = {
-                                    if (viewModel.selectedCategory.value?.value == "Milk"){
+                                    if (viewModel.selectedCategory.value?.value == "Milk") {
                                         snackbarController.getScope().launch {
                                             snackbarController.showSnackbar(
                                                 scaffoldState = scaffoldState,
@@ -98,8 +101,7 @@ class RecipeListFragment : Fragment() {
                                                 actionLabel = "Hide"
                                             )
                                         }
-                                    }
-                                    else{
+                                    } else {
                                         viewModel.newSearch()
                                     }
                                 },
@@ -123,13 +125,17 @@ class RecipeListFragment : Fragment() {
                                 .fillMaxSize()
                                 .background(MaterialTheme.colors.background)
                         ) {
-                            if (loading) {
+                            if (loading && recipes.isEmpty()) {
                                 LoadingRecipeListShimmer(imageHeight = 250.dp)
                             } else {
                                 LazyColumn {
                                     itemsIndexed(
                                         items = recipes
                                     ) { index, recipe ->
+                                        viewModel.onChangeRecipeScrollPosition(index)
+                                        if ((index + 1) >= (page * PAGE_SIZE) && !loading) {
+                                            viewModel.nextPage()
+                                        }
                                         RecipeCard(recipe = recipe, onClick = {})
                                     }
                                 }
