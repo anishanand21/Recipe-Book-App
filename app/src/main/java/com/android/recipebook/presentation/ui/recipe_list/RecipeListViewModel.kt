@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.recipebook.domain.model.Recipe
 import com.android.recipebook.network.model.RecipeDtoMapper
+import com.android.recipebook.presentation.ui.recipe_list.RecipeListEvent.*
 import com.android.recipebook.repository.RecipeRepository
 import com.android.recipebook.util.TAG
 import kotlinx.coroutines.delay
@@ -41,53 +42,68 @@ class RecipeListViewModel
     private var recipeListScrollPosition = 0
 
     init {
-        newSearch()
+        onTriggerEvent(NewSearchEvent)
     }
 
-    fun newSearch() {
+    fun onTriggerEvent(event: RecipeListEvent) {
         viewModelScope.launch {
-            loading.value = true
-            resetSearchState()
-            delay(3000)
-
-            val result = repository.search(
-                token = token,
-                page = 1,
-                query = query.value
-            )
-
-            recipes.value = result
-            loading.value = false
-        }
-    }
-
-    fun nextPage() {
-        viewModelScope.launch {
-            //prevent duplicate events due to recompose happening to quickly
-            if((recipeListScrollPosition + 1) >= (page.value * PAGE_SIZE)) {
-                loading.value = true
-                incrementPage()
-                Log.d(TAG, "nextPage: triggered: ${page.value}")
-
-                delay(1000)   //just to see pagination
-
-                if(page.value > 1) {
-                    val result = repository.search(
-                        token = token,
-                        page = page.value,
-                        query = query.value
-                    )
-                    Log.d(TAG, "nextPage: ${result}")
-                    appendRecipes(result)
+            try {
+                when (event) {
+                    is NewSearchEvent -> {
+                        newSearch()
+                    }
+                    is NextPageEvent -> {
+                        nextPage()
+                    }
                 }
-                loading.value = false
+            } catch (e: Exception) {
+                Log.e(TAG, "onTriggerEvent: Exception: ${e}, ${e.cause}")
             }
         }
     }
 
+    // use case #1
+    private suspend fun newSearch() {
+        loading.value = true
+        resetSearchState()
+        delay(3000)
+
+        val result = repository.search(
+            token = token,
+            page = 1,
+            query = query.value
+        )
+
+        recipes.value = result
+        loading.value = false
+    }
+
+    // use case #2
+    private suspend fun nextPage() {
+        //prevent duplicate events due to recompose happening to quickly
+        if ((recipeListScrollPosition + 1) >= (page.value * PAGE_SIZE)) {
+            loading.value = true
+            incrementPage()
+            Log.d(TAG, "nextPage: triggered: ${page.value}")
+
+            delay(1000)   //just to see pagination
+
+            if (page.value > 1) {
+                val result = repository.search(
+                    token = token,
+                    page = page.value,
+                    query = query.value
+                )
+                Log.d(TAG, "nextPage: ${result}")
+                appendRecipes(result)
+            }
+            loading.value = false
+        }
+    }
+
     /**
-    * Append new recipes to the current list of recipes
-    */
+     * Append new recipes to the current list of recipes
+     */
 
     private fun appendRecipes(recipes: List<Recipe>) {
         val current = ArrayList(this.recipes.value)

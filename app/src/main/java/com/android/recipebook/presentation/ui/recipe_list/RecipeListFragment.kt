@@ -44,6 +44,7 @@ import com.android.recipebook.presentation.components.*
 import com.android.recipebook.presentation.components.HeartAnimationDefinition.HeartButtonState.*
 import com.android.recipebook.presentation.components.util.SnackbarController
 import com.android.recipebook.presentation.theme.AppTheme
+import com.android.recipebook.presentation.ui.recipe_list.RecipeListEvent.*
 import com.android.recipebook.util.TAG
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -102,7 +103,7 @@ class RecipeListFragment : Fragment() {
                                             )
                                         }
                                     } else {
-                                        viewModel.newSearch()
+                                        viewModel.onTriggerEvent(NewSearchEvent)
                                     }
                                 },
                                 categories = getAllFoodCategories(),
@@ -134,7 +135,7 @@ class RecipeListFragment : Fragment() {
                                     ) { index, recipe ->
                                         viewModel.onChangeRecipeScrollPosition(index)
                                         if ((index + 1) >= (page * PAGE_SIZE) && !loading) {
-                                            viewModel.nextPage()
+                                            viewModel.onTriggerEvent(NextPageEvent)
                                         }
                                         RecipeCard(recipe = recipe, onClick = {})
                                     }
