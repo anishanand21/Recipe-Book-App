@@ -7,11 +7,9 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.android.recipebook.domain.model.Recipe
 import com.android.recipebook.network.model.RecipeDtoMapper
 import com.android.recipebook.presentation.ui.recipe_list.RecipeListEvent.*
@@ -21,10 +19,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Named
 
+const val PAGE_SIZE = 30
+
+const val STATE_KEY_PAGE = "recipe.state.page.key"
+const val STATE_KEY_QUERY = "recipe.state.query.key"
+const val STATE_KEY_LIST_POSITION = "recipe.state.query.list_position"
+const val STATE_KEY_SELECTED_CATEGORY = "recipe.state.query.selected_category"
+
 class RecipeListViewModel
 @ViewModelInject constructor(
     private val repository: RecipeRepository,
-    @Named("auth_token") private val token: String
+    @Named("auth_token") private val token: String,
+    @Assisted private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     val recipes: MutableState<List<Recipe>> = mutableStateOf(listOf())
@@ -42,7 +48,27 @@ class RecipeListViewModel
     private var recipeListScrollPosition = 0
 
     init {
-        onTriggerEvent(NewSearchEvent)
+        savedStateHandle.get<Int>(STATE_KEY_PAGE)?.let { p ->
+            Log.d(TAG, "restoring page: ${p}")
+            setPage(p)
+        }
+        savedStateHandle.get<String>(STATE_KEY_QUERY)?.let { q ->
+            setQuery(q)
+        }
+        savedStateHandle.get<Int>(STATE_KEY_LIST_POSITION)?.let { p ->
+            Log.d(TAG, "restoring scroll position: ${p}")
+            setListScrollPosition(p)
+        }
+        savedStateHandle.get<FoodCategory>(STATE_KEY_SELECTED_CATEGORY)?.let { c ->
+            setSelectedCategory(c)
+        }
+
+        // Were they doing something before the process died?
+        if (recipeListScrollPosition != 0) {
+            onTriggerEvent(RestoreStateEvent)
+        } else {
+            onTriggerEvent(NewSearchEvent)
+        }
     }
 
     fun onTriggerEvent(event: RecipeListEvent) {
@@ -55,9 +81,30 @@ class RecipeListViewModel
                     is NextPageEvent -> {
                         nextPage()
                     }
+                    is RestoreStateEvent -> {
+                        restoreState()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "onTriggerEvent: Exception: ${e}, ${e.cause}")
+            }
+        }
+    }
+
+    private suspend fun restoreState() {
+        loading.value = true
+        // Must retrieve each page of results.
+        val results: MutableList<Recipe> = mutableListOf()
+        for (p in 1..page.value) {
+            val result = repository.search(
+                token = token,
+                page = p,
+                query = query.value
+            )
+            results.addAll(result)
+            if (p == page.value) { // done
+                recipes.value = results
+                loading.value = false
             }
         }
     }
@@ -81,7 +128,7 @@ class RecipeListViewModel
     // use case #2
     private suspend fun nextPage() {
         //prevent duplicate events due to recompose happening to quickly
-        if ((recipeListScrollPosition + 1) >= (page.value * PAGE_SIZE)) {
+        if ((recipeListScrollPosition + 1) >= (page.value * com.android.recipebook.presentation.ui.recipe_list.PAGE_SIZE)) {
             loading.value = true
             incrementPage()
             Log.d(TAG, "nextPage: triggered: ${page.value}")
@@ -112,11 +159,11 @@ class RecipeListViewModel
     }
 
     private fun incrementPage() {
-        page.value = page.value + 1
+        setPage(page.value + 1)
     }
 
     fun onChangeRecipeScrollPosition(position: Int) {
-        recipeListScrollPosition = position
+        setListScrollPosition(position = position)
     }
 
     /**
@@ -132,21 +179,42 @@ class RecipeListViewModel
     }
 
     private fun clearSelectedCategory() {
+        setSelectedCategory(null)
         selectedCategory.value = null
     }
 
     fun onQueryChanged(query: String) {
-        this.query.value = query
+        setQuery(query)
     }
 
     fun onSelectedCategoryChanged(category: String) {
         val newCategory = getFoodCategory(category)
-        selectedCategory.value = newCategory
+        setSelectedCategory(newCategory)
         onQueryChanged(category)
     }
 
     fun onChangedCategoryScrollPosition(position: Float) {
         categoryScrollPosition = position
+    }
+
+    private fun setListScrollPosition(position: Int) {
+        recipeListScrollPosition = position
+        savedStateHandle.set(STATE_KEY_LIST_POSITION, position)
+    }
+
+    private fun setPage(page: Int) {
+        this.page.value = page
+        savedStateHandle.set(STATE_KEY_PAGE, page)
+    }
+
+    private fun setSelectedCategory(category: FoodCategory?) {
+        selectedCategory.value = category
+        savedStateHandle.set(STATE_KEY_SELECTED_CATEGORY, category)
+    }
+
+    private fun setQuery(query: String) {
+        this.query.value = query
+        savedStateHandle.set(STATE_KEY_QUERY, query)
     }
 
 }
